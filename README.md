@@ -1,4 +1,3 @@
-markdown
 # A Compact Structure-Aware and Symmetry-Breaking MILP for Flexible Job-Shop Scheduling with AGVs
 
 ## Project Overview
@@ -8,28 +7,29 @@ This repository contains the implementation of a compact and structure-aware Mix
 ## Key Features
 
 - **Compact MILP Formulation**: A sequence-based model with significantly fewer sequencing-related variables compared to existing approaches.
-- **Structural Property Exploitation**: Derives and enforces a key property¡ªthe first transportation task of each AGV must correspond to the first operation of some job¡ªusing the triangle inequality of transportation distances.
+- **Structural Property Exploitation**: Derives and enforces a key propertyâ€”the first transportation task of each AGV must correspond to the first operation of some jobâ€”using the triangle inequality of transportation distances.
 - **Symmetry Breaking**: Introduces constraints to eliminate redundant AGV assignment permutations, reducing the search space.
 - **Effective Lower Bounds**: Three problem-specific lower bounds are designed to strengthen the linear relaxation and improve branch-and-bound pruning.
 - **Comprehensive Benchmarking**: Validated on five classic benchmark sets (FJSPT, EX, SFJS, MFJSP, and MK) with 97 instances, demonstrating improved makespan values and significantly reduced computational time.
 
 ## Project Structure
-```
+
+```text
 fjsp_agv_milp/
-©À©¤©¤ FJSPT_model_all.py  # Main MILP model implementation with Gurobi
-©À©¤©¤ FJSPT_model_yao.py  # Baseline MILP model (Yao et al. 2025) for comparison
-©À©¤©¤ read_data.py        # Reads benchmark instances (.dat files)
-©À©¤©¤ lower_bound.py      # Computes the three proposed lower bounds (lb1, lb2, lb3)
-©À©¤©¤ record_result.py    # Writes optimization results to CSV
-©À©¤©¤ show_solution.py    # Visualizes the schedule with Gantt charts
-©À©¤©¤ gantt.py            # Visualizes the schedule with Gantt charts
-©À©¤©¤ benchmark/          # Directory containing benchmark instances
-©¦ ©À©¤©¤ FJSPT/            # FJSPT benchmark (10 instances)
-©¦ ©À©¤©¤ EX/               # EX benchmark (57 instances)
-©¦ ©À©¤©¤ SFJS/             # SFJS benchmark (10 instances)
-©¦ ©À©¤©¤ MFJS/             # MFJS benchmark (10 instances)
-©¦ ©¸©¤©¤ MK/               # MK benchmark (10 instances)
-©¸©¤©¤ result/ # Output directory for logs and solutions
+â”œâ”€â”€ FJSPT_model_all.py  # Main MILP model implementation with Gurobi
+â”œâ”€â”€ FJSPT_model_yao.py  # Baseline MILP model (Yao et al. 2025) for comparison
+â”œâ”€â”€ read_data.py        # Reads benchmark instances (.dat files)
+â”œâ”€â”€ lower_bound.py      # Computes the three proposed lower bounds (lb1, lb2, lb3)
+â”œâ”€â”€ record_result.py    # Writes optimization results to CSV
+â”œâ”€â”€ show_solution.py    # Visualizes the schedule with Gantt charts
+â”œâ”€â”€ gantt.py            # Visualizes the schedule with Gantt charts
+â”œâ”€â”€ benchmark/          # Directory containing benchmark instances
+â”‚ â”œâ”€â”€ FJSPT/            # FJSPT benchmark (10 instances)
+â”‚ â”œâ”€â”€ EX/               # EX benchmark (57 instances)
+â”‚ â”œâ”€â”€ SFJS/             # SFJS benchmark (10 instances)
+â”‚ â”œâ”€â”€ MFJS/             # MFJS benchmark (10 instances)
+â”‚ â””â”€â”€ MK/               # MK benchmark (10 instances)
+â””â”€â”€ result/ # Output directory for logs and solutions
 ```
 
 ## Prerequisites
@@ -60,10 +60,13 @@ The baseline model from [Yao et al. (2025)](https://doi.org/10.1109/TASE.2024.33
 1. **Prepare benchmark data**: Place the instance files (`.dat` format) in the corresponding `benchmark/` subdirectories.
 
 2. **Run the MILP solver**:
+
    ```bash
    python FJSPT_model_all.py
    ```
+
 ## Optimal Gantt Charts
+
 For all instances where the proposed model achieved the optimal makespan (Gap = 0), the corresponding Gantt charts are provided below. The charts illustrate machine assignments and AGV transportation schedules.
 
 ![FJSPT1](optimal_gantt/FJSPT1_title.svg)
