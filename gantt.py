@@ -46,11 +46,8 @@ def gantt(num_jobs, num_vehicles, data_job, data_agv, max_finish=None, show_titl
     # gantt_labels |= {f"AGV{agv}": f"AGV{agv}" for agv in range(1, num_vehicles + 1)}
 
     ax = plt.gca()
-    data_job.insert(0, "y_label", None)
-    for i in data_job.index:
-        data_job.loc[i, "y_label"] = "$m_{" + str(data_job.machine[i]) + "}$"
 
-    data_job.insert(0, "y_offset", data_job["y_label"].rank(method='dense', ascending=True))
+    data_job.insert(0, "y_offset", data_job["machine"].rank(method='dense', ascending=True))
     # data_job.y_offset = data_job.y_offset - 1
     bar_height = 0.65
     text_margin = max_finish / 82 - 0.1
@@ -129,8 +126,8 @@ def gantt(num_jobs, num_vehicles, data_job, data_agv, max_finish=None, show_titl
 
     # Set yticks
     if show_y_label is True:
-        labels = data_job.drop_duplicates(subset=['y_label'])['y_label'].sort_values(ascending=True).to_list()
-
+        machines = data_job.drop_duplicates(subset=['machine'])['machine'].sort_values(ascending=True).to_list()
+        labels = ["$m_{" + str(m) + "}$" for m in machines]
         labels.insert(0, "Depot")
         labels.insert(0, "Agv2")
         labels.insert(0, "Agv1")
