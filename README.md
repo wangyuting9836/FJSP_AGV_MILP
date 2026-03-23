@@ -15,32 +15,6 @@ This repository contains the implementation of a compact and structure-aware Mix
 
 ## Project Structure
 ```
-fjsp_gnn_drl_pyg/
-©À©¤©¤ agent/
-©¦   ©¸©¤©¤ ppo_agent.py                # PPO Agent implementation
-©À©¤©¤ config/                         
-©¦   ©¸©¤©¤ parse_args.py               # Configuration file
-©À©¤©¤ FJSP_benchmarks/                # FJSP benchmark instances
-©À©¤©¤ FJSP_layouts/                   # Workshop layout files
-©À©¤©¤ FJSP_MILP/                      
-©¦   ©À©¤©¤ FJSP_AGV_model.py           # Gurobi code for MILP 
-©¦   ©¸©¤©¤ pygantt_agv.py              # Draw a Gantt chart 
-©À©¤©¤ fjsp_env/
-©¦   ©¸©¤©¤ fjsp_env.py                 # Main FJSPT environment logic 
-©À©¤©¤ fjsp_lib/
-©¦   ©À©¤©¤ fjsp_graph_data.py          # Graph data structures generation
-©¦   ©À©¤©¤ fjsp_instance.py            # Problem instance definition
-©¦   ©À©¤©¤ fjsp_partial_solution.py    # Partial solution (recording scheduled information)
-©¦   ©À©¤©¤ generate_instance.py        # Instances generation
-©¦   ©À©¤©¤ read_fjsp.py                # Benchmark instance reader (parsing FJSP benchmark files)
-©¦   ©¸©¤©¤ write_fjsp.py               # Problem instance writer (saving FJSP instances to files)
-©À©¤©¤ hgnn/
-©¦   ©À©¤©¤ hetero_gatv2_conv.py        # Heterogeneous Graph Attention layers
-©¦   ©À©¤©¤ hgnn.py                     # Main HGFN architecture
-©¦   ©À©¤©¤ machine_node_embedding.py   # Machine node embedding
-©¦   ©À©¤©¤ operation_node_embedding.py # Operation node embedding
-©¦   ©¸©¤©¤ vehicle_node_embedding.py   # Vehicle node embedding
-©¸©¤©¤ train_ppo.py                    # Main training script
 fjsp_agv_milp/
 ©À©¤©¤ FJSPT_model_all.py  # Main MILP model implementation with Gurobi
 ©À©¤©¤ FJSPT_model_yao.py  # Baseline MILP model (Yao et al. 2025) for comparison
