@@ -28,7 +28,8 @@ fjsp_agv_milp/
 │ ├── EX/               # EX benchmark (57 instances)
 │ ├── SFJS/             # SFJS benchmark (10 instances)
 │ ├── MFJS/             # MFJS benchmark (10 instances)
-│ └── MK/               # MK benchmark (10 instances)
+│ ├── MK/               # MK benchmark (10 instances)
+│ ├── case_study/       # Real-world cases within a Chinese coal machine structural parts production workshop.
 └── result/             # Output directory for logs and solutions
 ```
 The baseline model from [Yao et al. (2025)](https://doi.org/10.1109/TASE.2024.3356255) is provided in `FJSPT_model_yao.py` for direct performance comparison.
