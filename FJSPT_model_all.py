@@ -45,8 +45,8 @@ def solve_fjspt_all(num_jobs, num_machines, num_vehicles, p, operation_set, Delt
         q = model.addVars(
             [(i, j, k, i1, j1, k1)
              for i in job_set
-             for j in operation_set[i]
              for i1 in job_set
+             for j in operation_set[i]
              for j1 in operation_set[i1]
              if i < i1 or (i == i1 and j <= j1)
              for k in Delta[i, j]
@@ -61,7 +61,7 @@ def solve_fjspt_all(num_jobs, num_machines, num_vehicles, p, operation_set, Delt
                 for j in operation_set[i]
                 for j1 in operation_set[i1]
                 if i != i1
-                for k in set(Delta[i, j]) & set(Delta[i1, j1])
+                for k in np.intersect1d(Delta[i, j], Delta[i1, j1], assume_unique=True)
             ],
             vtype=GRB.BINARY, name="y"
         )
@@ -117,30 +117,30 @@ def solve_fjspt_all(num_jobs, num_machines, num_vehicles, p, operation_set, Delt
         model.setObjective(c_max, GRB.MINIMIZE)
 
         # Add constraints
-        # (1)
+        # Eq (6) in the paper
         model.addConstrs(
             gp.quicksum(x[i, j, k] for k in Delta[i, j]) == 1
             for i in job_set
             for j in operation_set[i])
-        # (2)
+        # Eq (7) in the paper
         model.addConstrs(
             gp.quicksum(q[i, j, k, i1, j1, k1] for k1 in Delta[i1, j1]) == x[i, j, k]
             for i in job_set
-            for j in operation_set[i]
             for i1 in job_set
+            for j in operation_set[i]
             for j1 in operation_set[i1]
             if i < i1 or (i == i1 and j <= j1)
             for k in Delta[i, j])
-        # (3)
+        # Eq (8) in the paper
         model.addConstrs(
             gp.quicksum(q[i, j, k, i1, j1, k1] for k in Delta[i, j]) == x[i1, j1, k1]
             for i in job_set
-            for j in operation_set[i]
             for i1 in job_set
+            for j in operation_set[i]
             for j1 in operation_set[i1]
             if i < i1 or (i == i1 and j <= j1)
             for k1 in Delta[i1, j1])
-        # (4)
+        # Eq (9) in the paper
         model.addConstrs(
             y[i, j, i1, j1, k] + y[i1, j1, i, j, k] == q[i, j, k, i1, j1, k]
             for i in job_set
@@ -148,60 +148,60 @@ def solve_fjspt_all(num_jobs, num_machines, num_vehicles, p, operation_set, Delt
             for j in operation_set[i]
             for j1 in operation_set[i1]
             if i < i1
-            for k in np.intersect1d(Delta[i, j], Delta[i1, j1]))
-        # (5)
+            for k in np.intersect1d(Delta[i, j], Delta[i1, j1], assume_unique=True))
+        # Eq (10) in the paper
         model.addConstrs(
-            c[i, j1] >= c[i, j] + p[i, j1, k] + (q[i, j, k, i, j1, k] - 1) * h
+            c[i, j1] >= c[i, j] + p[i, j1, k] + (q[i, j, k, i, j1, k] - 1) * mp
             for i in job_set
             for j in operation_set[i]
             for j1 in operation_set[i][1:]
             if j < j1
-            for k in np.intersect1d(Delta[i, j], Delta[i, j1]))
-        # (6)
+            for k in np.intersect1d(Delta[i, j], Delta[i, j1], assume_unique=True))
+        # Eq (11) in the paper
         model.addConstrs(
-            c[i1, j1] >= c[i, j] + p[i1, j1, k] + (y[i, j, i1, j1, k] - 1) * h
+            c[i1, j1] >= c[i, j] + p[i1, j1, k] + (y[i, j, i1, j1, k] - 1) * mp
             for i in job_set
             for i1 in job_set
             for j in operation_set[i]
             for j1 in operation_set[i1]
             if i != i1
-            for k in np.intersect1d(Delta[i, j], Delta[i1, j1]))
-        # (7)
+            for k in np.intersect1d(Delta[i, j], Delta[i1, j1], assume_unique=True))
+        # Eq (12) in the paper
         model.addConstrs(
             z[i, 1] == 1
             for i in job_set)
-        # (8)
+        # Eq (13) in the paper
         model.addConstrs(
-            z[i, j] == 1 - gp.quicksum(q[i, j - 1, k, i, j, k] for k in np.intersect1d(Delta[i, j - 1], Delta[i, j]))
+            z[i, j] == 1 - gp.quicksum(q[i, j - 1, k, i, j, k] for k in np.intersect1d(Delta[i, j - 1], Delta[i, j], assume_unique=True))
             for i in job_set
             for j in operation_set[i][1:])
-        # (9)
+        # Eq (14) in the paper
         model.addConstrs(
             gp.quicksum(w[i, j, r] for r in vehicle_set) == z[i, j]
             for i in job_set
             for j in operation_set[i])
-        # (10)
+        # Eq (15) in the paper
         model.addConstrs(
             f[i, r] <= w[i, 1, r]
             for i in job_set
             for r in vehicle_set)
-        # (11)
+        # Eq (16) in the paper
         model.addConstrs(
             gp.quicksum(f[i, r] for i in job_set) == 1
             for r in vehicle_set)
-        # (12)
+        # Eq (17) in the paper
         model.addConstrs(
             gp.quicksum(i * f[i, r - 1] for i in job_set) <= gp.quicksum(i * f[i, r] for i in job_set)
             for r in vehicle_set[1:])
-        # (13)
+        # Eq (18) in the paper
         model.addConstrs(
             u[i, j, i1, 1, r] <= -(w[i, j, r] + f[i1, r] - 2)
             for i in job_set
-            for j in operation_set[i]
             for i1 in job_set
+            for j in operation_set[i]
             if i != i1
             for r in vehicle_set)
-        # (14)
+        # Eq (19) in the paper
         model.addConstrs(
             u[i, 1, i1, j1, r] >= 1 + (w[i1, j1, r] + f[i, r] - 2)
             for i in job_set
@@ -209,7 +209,7 @@ def solve_fjspt_all(num_jobs, num_machines, num_vehicles, p, operation_set, Delt
             for j1 in operation_set[i1]
             if i != i1
             for r in vehicle_set)
-        # (15)
+        # Eq (20) in the paper
         model.addConstrs(
             u[i, j, i1, j1, r] + u[i1, j1, i, j, r] <= w[i, j, r]
             for i in job_set
@@ -218,7 +218,7 @@ def solve_fjspt_all(num_jobs, num_machines, num_vehicles, p, operation_set, Delt
             for j1 in operation_set[i1]
             if i < i1
             for r in vehicle_set)
-        # (16)
+        # Eq (21) in the paper
         model.addConstrs(
             u[i, j, i1, j1, r] + u[i1, j1, i, j, r] <= w[i1, j1, r]
             for i in job_set
@@ -227,7 +227,7 @@ def solve_fjspt_all(num_jobs, num_machines, num_vehicles, p, operation_set, Delt
             for j1 in operation_set[i1]
             if i < i1
             for r in vehicle_set)
-        # (17)
+        # Eq (22) in the paper
         model.addConstrs(
             u[i, j, i1, j1, r] + u[i1, j1, i, j, r] >= w[i, j, r] + w[i1, j1, r] - 1
             for i in job_set
@@ -236,72 +236,72 @@ def solve_fjspt_all(num_jobs, num_machines, num_vehicles, p, operation_set, Delt
             for j1 in operation_set[i1]
             if i < i1
             for r in vehicle_set)
-        # (18)
+        # Eq (23) in the paper
         model.addConstrs(
             a[i, j1] >= a[i, j]
             + gp.quicksum(t_time_matrix[k][k1] * q[i, j, k, i, j1 - 1, k1] for k in Delta[i, j] for k1 in Delta[i, j1 - 1])
             + gp.quicksum(t_time_matrix[k][k1] * q[i, j1 - 1, k, i, j1, k1] for k in Delta[i, j1 - 1] for k1 in Delta[i, j1])
-            + (w[i, j, r] + w[i, j1, r] - 2) * h
+            + (w[i, j, r] + w[i, j1, r] - 2) * mt
             for i in job_set
             for j in operation_set[i]
             for j1 in operation_set[i][1:]
             if j < j1
             for r in vehicle_set)
-        # (19)
+        # Eq (24) in the paper
         model.addConstrs(
             a[i1, j1] >= a[i, j]
             + gp.quicksum(t_time_matrix[k][k1] * q[i, j, k, i1, j1 - 1, k1] for k in Delta[i, j] for k1 in Delta[i1, j1 - 1])
             + gp.quicksum(t_time_matrix[k][k1] * q[i1, j1 - 1, k, i1, j1, k1] for k in Delta[i1, j1 - 1] for k1 in Delta[i1, j1])
-            + (u[i, j, i1, j1, r] - 1) * h
+            + (u[i, j, i1, j1, r] - 1) * mt
             for i in job_set
             for i1 in job_set
             for j in operation_set[i]
             for j1 in operation_set[i1][1:]
             if i < i1
             for r in vehicle_set)
-        # (20)
+        # Eq (25) in the paper
         model.addConstrs(
             a[i1, j1] >= a[i, j]
             + gp.quicksum(t_time_matrix[k][k1] * q[i1, j1 - 1, k1, i, j, k] for k in Delta[i, j] for k1 in Delta[i1, j1 - 1])
             + gp.quicksum(t_time_matrix[k][k1] * q[i1, j1 - 1, k, i1, j1, k1] for k in Delta[i1, j1 - 1] for k1 in Delta[i1, j1])
-            + (u[i, j, i1, j1, r] - 1) * h
+            + (u[i, j, i1, j1, r] - 1) * mt
             for i in job_set
             for i1 in job_set
             for j in operation_set[i]
             for j1 in operation_set[i1][1:]
             if i > i1
             for r in vehicle_set)
-        # (21)
+        # Eq (26) in the paper
         model.addConstrs(
             a[i1, 1] >= a[i, j]
             + gp.quicksum(t_time_matrix[k][0] * x[i, j, k] for k in Delta[i, j])
             + gp.quicksum(t_time_matrix[0][k] * x[i1, 1, k] for k in Delta[i1, 1])
-            + (u[i, j, i1, 1, r] - 1) * h
+            + (u[i, j, i1, 1, r] - 1) * mt
             for i in job_set
             for i1 in job_set
             for j in operation_set[i]
             if i != i1
             for r in vehicle_set)
-        # (22)
+        # Eq (27) in the paper
         model.addConstrs(
             a[i, 1] >= gp.quicksum(t_time_matrix[0][k] * x[i, 1, k] for k in Delta[i, 1])
             for i in job_set)
-        # (23)
+        # Eq (28) in the paper
         model.addConstrs(
             c[i, j] >= a[i, j] + gp.quicksum(x[i, j, k] * p[i, j, k] for k in Delta[i, j])
             for i in job_set
             for j in operation_set[i])
-        # (24)
+        # Eq (29) in the paper
         model.addConstrs(
             a[i, j] >= c[i, j - 1]
             + gp.quicksum(t_time_matrix[k][k1] * q[i, j - 1, k, i, j, k1] for k in Delta[i, j - 1] for k1 in Delta[i, j])
             for i in job_set
             for j in operation_set[i][1:])
-        # (25)
+        # Eq (30) in the paper
         model.addConstrs(
             c_max >= c[i, operation_set[i][-1]]
             for i in job_set)
-        # (26)
+        # Eq (4) in the paper
         # model.addConstr(c_max >= lb)
 
         # Optimize model
