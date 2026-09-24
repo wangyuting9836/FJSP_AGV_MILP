@@ -14,8 +14,8 @@ from show_solution import show_solution
 def solve_fjspt_all(num_jobs, num_machines, num_vehicles, p, operation_set, Delta, t_time_matrix, log_file_path='a.log'):
     try:
         # h = 0x0000ffff
-        h = calculate_upper_bound(num_jobs, p, operation_set, Delta, t_time_matrix)
-        print(f"upper_bound: {h}")
+        mp, mt = calculate_upper_bound(num_jobs, num_machines, p, operation_set, Delta, t_time_matrix)
+        print(f"upper_bound:, {mp}, {mt}")
         job_set = np.arange(1, num_jobs + 1)
         # machine_set = np.arange(1, num_machines + 1)
         vehicle_set = np.arange(1, num_vehicles + 1)
