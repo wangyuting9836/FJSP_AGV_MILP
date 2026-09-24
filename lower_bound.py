@@ -68,10 +68,27 @@ def calculate_lower_bound(num_jobs, num_machines, num_vehicles, p, operation_set
     return np.max([lower_bound1, lower_bound2, lower_bound3]).astype(np.float32)  # , operation_lower_bound
 
 
-def calculate_upper_bound(num_jobs, p, operation_set, Delta, t_time_matrix):
+def calculate_upper_bound(num_jobs, num_machines, p, operation_set, Delta, t_time_matrix):
     job_set = np.arange(1, num_jobs + 1)
-    # machine_set = np.arange(1, num_machines + 1)
+    machine_set = np.arange(1, num_machines + 1)
 
+    max_time_first_op = np.array([
+        np.max([
+            t_time_matrix[k][0] + t_time_matrix[0][k1] + p[i, 1, k1] for k in machine_set for k1 in Delta[i, 1]
+        ])
+        for i in job_set
+    ])
+
+    max_time_successor_op = np.array([
+        np.sum([
+            np.max([
+                t_time_matrix[k][k1] + t_time_matrix[k1][k2] + p[i, j, k2] for k in machine_set for k1 in Delta[i, j - 1] for k2 in Delta[i, j]
+            ]) for j in operation_set[i][1:]
+        ])
+        for i in job_set
+    ])
+
+    '''
     max_total_p_time = np.array([
         np.sum([
             np.max([
@@ -94,6 +111,20 @@ def calculate_upper_bound(num_jobs, p, operation_set, Delta, t_time_matrix):
         ])
         for i in job_set
     ])
-
     upper_bound = np.sum([max_total_p_time, max_t_time_first_op, max_t_time_successor_op]).astype(np.float32)
-    return upper_bound
+    '''
+    upper_bound = np.sum([max_time_first_op, max_time_successor_op]).astype(np.float32)
+
+    max_p_time = np.max([
+        p[i, j, k] for i in job_set for j in operation_set[i] for k in Delta[i, j]
+    ])
+
+    max_t_time = max(
+        np.max([
+            t_time_matrix[k][k1] + t_time_matrix[k1][k2] for k in machine_set for k1 in machine_set for k2 in machine_set
+        ]), np.max([
+            t_time_matrix[k][0] + t_time_matrix[0][k1] for k in machine_set for k1 in machine_set
+        ])
+    )
+
+    return upper_bound + max_p_time, upper_bound + max_t_time
